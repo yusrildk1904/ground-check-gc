@@ -55,7 +55,13 @@ function loadData(){
   state.keyword = cari.value.trim();
   state.alamat = cariAlamat.value.trim(); // 🔥 BARU
 
-  fetch(`${API}?action=list&desa=${state.desa}&status=${state.status}&page=${state.page}&keyword=${state.keyword}`)
+  fetch(`${API}?action=list`
+    + `&desa=${encodeURIComponent(state.desa)}`
+    + `&status=${encodeURIComponent(state.status)}`
+    + `&page=${state.page}`
+    + `&keyword=${encodeURIComponent(state.keyword)}`
+    + `&alamat=${encodeURIComponent(state.alamat)}`
+    )
     .then(r=>r.json())
     .then(res=>{
       state.totalPage = Math.ceil(res.total / res.pageSize);
