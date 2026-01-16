@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.json">
+
+<title>Ground Check</title>
+
+<style>
+:root{
+  --primary:#2563eb;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+}
+
+*{box-sizing:border-box}
+
+body{
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background:var(--bg);
+  margin:0;
+  padding:16px;
+  color:var(--text);
+  font-size:16px;
+}
+
+h3{margin:0 0 12px;font-size:20px}
+
+.container{
+  max-width:1000px;
+  margin:auto;
+  background:var(--card);
+  padding:16px;
+  border-radius:12px;
+  box-shadow:0 10px 25px rgba(0,0,0,.05);
+}
+
+label{font-weight:600;margin-top:12px;display:block}
+
+select,input{
+  width:100%;
+  padding:12px;
+  margin-top:6px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  font-size:16px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:12px;
+  border:none;
+  border-radius:10px;
+  background:var(--primary);
+  color:white;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.table-wrapper{overflow-x:auto;margin-top:16px}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:700px;
+}
+
+th,td{
+  padding:12px;
+  border-bottom:1px solid var(--border);
+  font-size:15px;
+}
+
+th{background:#f9fafb}
+
+.kosong{background:#fff7ed}
+.lengkap{background:#ecfdf5}
+
+#pagination{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin-top:16px;
+}
+
+#pagination button{width:auto;padding:8px 14px}
+
+.modal-bg{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  z-index:50;
+
+  /* 🔥 kunci utama */
+  overflow-y:auto;
+  padding:16px;
+}
+
+.modal{
+  background:white;
+  width:100%;
+  max-width:420px;
+  margin:auto;
+  padding:16px;
+  border-radius:14px;
+
+  /* 🔥 batasi tinggi */
+  max-height:calc(100vh - 32px);
+  overflow-y:auto;
+
+  /* biar scroll halus */
+  -webkit-overflow-scrolling:touch;
+}
+
+/* ================= LOADING OVERLAY ================= */
+#loadingOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(255,255,255,.85);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+
+.loading-box{
+  text-align:center;
+}
+
+.spinner{
+  width:48px;
+  height:48px;
+  border:5px solid #e5e7eb;
+  border-top:5px solid var(--primary);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin:auto;
+}
+
+.loading-text{
+  margin-top:12px;
+  font-size:16px;
+  font-weight:600;
+  color:var(--muted);
+}
+
+@keyframes spin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h3>Input Ground Check</h3>
+
+  <label>Filter Desa</label>
+  <select id="desa">
+    <option value="">-- pilih desa --</option>
+  </select>
+
+  <label>Status GC</label>
+  <select id="status">
+    <option value="all">Semua</option>
+    <option value="belum">Belum GC</option>
+    <option value="sudah">Sudah GC</option>
+  </select>
+
+  <label>Cari Nama Usaha</label>
+  <input id="cari" placeholder="ketik nama usaha...">
+
+  <label>Cari Alamat</label>
+  <input id="cariAlamat" placeholder="ketik alamat...">
+
+  <button id="btnTampil">Tampilkan Data</button>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Nama Usaha</th>
+          <th>Alamat</th>
+          <th>Lat</th>
+          <th>Lng</th>
+          <th>Hasil GC</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div id="pagination"></div>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div class="loading-text">Memuat data...</div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 id="m_nama"></h3>
+    <div id="m_alamat" style="font-size:14px;color:#6b7280;margin-bottom:10px"></div>
+
+    <label>Kegiatan Usaha</label>
+    <input id="kegiatan" readonly>
+
+    <label>Sumber Data</label>
+    <input id="sumber" readonly>
+
+    <label>Latitude</label>
+    <input id="lat" placeholder="Latitude">
+
+    <label>Longitude</label>
+    <input id="lng" placeholder="Longitude">
+
+    <button onclick="lihatLokasi()">📍 Lihat Lokasi (Maps)</button>
+
+    <label>Hasil GC</label>
+    <select id="hasilgc">
+      <option value="">-- pilih --</option>
+      <option value="0">0 - Tidak Ditemukan</option>
+      <option value="1">1 - Ditemukan</option>
+      <option value="3">3 - Tutup</option>
+      <option value="4">4 - Ganda</option>
+    </select>
+
+    <button onclick="ambilLokasi()">📡 Ambil Lokasi</button>
+    <button onclick="simpan()">💾 Simpan</button>
+    <button onclick="tutup()">❌ Batal</button>
+  </div>
+</div>
+<script src="app.js"></script>
+
+</body>
+</html>
