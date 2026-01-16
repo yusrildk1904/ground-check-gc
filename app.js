@@ -1,4 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycbzZvzzh_hcBEceEh3kQqhmO5C4ri4okjiyku01WuDksC6Tm1JQklKuoJhwS9tEXc4vQcQ/exec";
+const API = "https://script.google.com/macros/s/AKfycbyG8gi-VMK70bRa6DspV7AOkzce1KJfVZ_882sIiCfVbpK_NARNrS94Za9ZgyjB0Z5sOg/exec";
 
 /* === ELEMEN & STATE === */
 const desa = document.getElementById("desa");
